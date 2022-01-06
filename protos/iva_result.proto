@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package iva_result;
+
+service IVAResultProcessing {
+  rpc GetResult(Request) returns (stream ResultResponse) {}
+  rpc GetEvent(Request) returns (stream EventResponse) {}
+}
+
+message Request {
+  string task_id = 1;
+  string group = 4;
+}
+
+message ResultResponse {
+  string task_id = 1;
+  int32 feature_id = 2;
+  string source_url = 3;
+  int64 timestamp = 4;
+  repeated Label labels = 5;
+}
+
+message EventResponse {
+  string task_id = 1;
+  int32 feature_id = 2;
+  string source_url = 3;
+  string description = 4;
+  repeated Label labels = 5;
+  repeated string images = 6;
+  string video_url = 7;
+  int64 timestamp = 8;
+
+}
+
+message Label {
+  string name = 1;
+  repeated Instance instances = 2;
+}
+
+message Instance {
+  BoundingBox bounding_box = 1;
+  float confidence = 2;
+  string additional_info = 3;
+}
+
+message BoundingBox {
+  float x = 1;
+  float y = 2;
+  float width = 3;
+  float height = 4;
+}
