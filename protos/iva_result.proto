@@ -18,6 +18,7 @@ message ResultResponse {
   string source_url = 3;
   int64 timestamp = 4;
   repeated Label labels = 5;
+  string forward_data = 6;
 }
 
 message EventResponse {
@@ -29,7 +30,7 @@ message EventResponse {
   repeated string images = 6;
   string video_url = 7;
   int64 timestamp = 8;
-
+  string forward_data = 9;
 }
 
 message Label {

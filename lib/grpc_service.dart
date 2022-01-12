@@ -12,44 +12,31 @@ class GrpcService {
     required this.host,
     required this.port
   });
-  getResult(String taskId) async{
+  Future<ResponseStream<ResultResponse>> getResult(String taskId) async{
     final channel = ClientChannel(
       host,
       port: port,
       options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
     );
     final stub = IVAResultProcessingClient(channel);
-    try {
       ResponseStream<ResultResponse> response = await stub.getResult(Request()
         ..taskId = taskId
         ..group = Uuid().v1());
-      response.forEach((element) {
-        print('Greeter client received: ${element.toString()}');
-      });
-    } catch (e) {
-      print('Caught error: $e');
-    }
-    await channel.shutdown();
+      return response;
+    // await channel.shutdown();
   }
 
-  getEvent(String taskId) async{
+  Future<ResponseStream<EventResponse>> getEvent(String taskId) async{
     final channel = ClientChannel(
       host,
       port: port,
       options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
     );
     final stub = IVAResultProcessingClient(channel);
-    try {
       ResponseStream<EventResponse> response = await stub.getEvent(Request()
         ..taskId = taskId
         ..group = Uuid().v1());
-      response.forEach((element) {
-        print('Greeter client received: ${element.toString()}');
-      });
-    } catch (e) {
-      print('Caught error: $e');
-    }
-    await channel.shutdown();
+     return response;
   }
 
 }
