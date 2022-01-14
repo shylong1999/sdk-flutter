@@ -1,8 +1,10 @@
 library sdk_iva_vts;
 
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:http/http.dart';
+import 'package:sdk_iva_vts/feature_details.dart';
 import 'package:sdk_iva_vts/object.dart';
 import 'package:sdk_iva_vts/post.dart';
 
@@ -14,21 +16,19 @@ class IvaService {
     required this.urlPath
   });
 
-  Future<List<Feature>> getListFeature(int offset, int limit) async {
+  Future<List<Feature>> getListFeature(dynamic offset, dynamic limit) async {
     final queryParameters = {
-      'offset': offset,
-      'limit': limit
+      'offset': offset.toString(),
+      'limit': limit.toString()
     };
-    print(this.urlPath);
     final uri =
     Uri.http(this.urlPath,"/api/v1/features/", queryParameters);
-    print(uri);
     var result = await _makeGetRequest(uri);
     result.forEach((Feature feature) => print(feature.id));
     return result;
   }
 
-  Future<String> getListFeatureById(int featureId) async {
+  Future getListFeatureById(int featureId) async {
     var uri = Uri.http(this.urlPath,'/api/v1/features/${featureId}',null);
     Response response = await get(uri);
     // data sample trả về trong response
@@ -36,9 +36,26 @@ class IvaService {
     Map<String, String> headers = response.headers;
     String? contentType = headers['content-type'];
     var jsonResponse = json.decode(response.body);
-    print(jsonResponse);
-    return jsonResponse;
+
+    return FeatureDetails.fromJson(jsonResponse);
   }
+
+  Future getListFeatureByName(String featureName) async {
+    final queryParameters = {
+      'feature_name': featureName
+    };
+    var uri = Uri.http(this.urlPath,'/api/v1/features/get-by-name',queryParameters);
+    Response response = await get(uri);
+    // data sample trả về trong response
+    int statusCode = response.statusCode;
+    Map<String, String> headers = response.headers;
+    String? contentType = headers['content-type'];
+    var jsonResponse = json.decode(response.body);
+
+    return FeatureDetails.fromJson(jsonResponse);
+  }
+
+
 
 
   Future<List<Post>> getResult(String url) async {
@@ -64,6 +81,152 @@ class IvaService {
     String? contentType = headers['content-type'];
     List jsonResponse = json.decode(response.body);
     return jsonResponse.map((value) => new Feature.fromJson(value)).toList();
+  }
+
+  createVideoConfigId(int featureId, var config) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "application/json"};
+    var body = {
+      "feature_id": featureId,
+      "config" : config
+    };
+
+    var uri = Uri.http(this.urlPath,'/api/v1/video-configs/create',null);
+    Response response = await post(uri, headers: headers, body: jsonEncode(body));
+    int statusCode = response.statusCode;
+    print(statusCode);
+    // API này trả về id của item mới được add trong body
+    String responseBody = response.body;
+    return json.decode(responseBody);
+  }
+
+  updateVideoConfigId(String videoConfigId, var config) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "application/json"};
+    var body = {
+      "video_config_id": videoConfigId,
+      "new_config" : config
+    };
+
+    var uri = Uri.http(this.urlPath,'/api/v1/video-configs/update',null);
+    Response response = await post(uri, headers: headers, body: jsonEncode(body));
+    int statusCode = response.statusCode;
+    print(statusCode);
+    // API này trả về id của item mới được add trong body
+    String responseBody = response.body;
+    return json.decode(responseBody);
+  }
+
+  Future getVideoConfig(String videoConfigId) async {
+    // final queryParameters = {
+    //   'feature_name': featureName
+    // };
+    var uri = Uri.http(this.urlPath,'/api/v1/video-configs/${videoConfigId}',null);
+    Response response = await get(uri);
+    // data sample trả về trong response
+    int statusCode = response.statusCode;
+    Map<String, String> headers = response.headers;
+    String? contentType = headers['content-type'];
+    var jsonResponse = json.decode(response.body);
+
+    return jsonResponse;
+  }
+
+
+  Future getVideoTasksByFeatureId(dynamic featureId) async {
+    final queryParameters = {
+      'feature_id': featureId.toString()
+    };
+    var uri = Uri.http(this.urlPath,'/api/v1/video-tasks/',queryParameters);
+    Response response = await get(uri);
+    // data sample trả về trong response
+    int statusCode = response.statusCode;
+    Map<String, String> headers = response.headers;
+    String? contentType = headers['content-type'];
+    var jsonResponse = json.decode(response.body);
+
+    return jsonResponse;
+  }
+
+
+  // Future startVideoTask(String sourceURL,String configId) async {
+  //   // final queryParameters = {
+  //   //   'feature_name': featureName
+  //   // };
+  //   var uri = Uri.http(this.urlPath,'/api/v1/video-configs/${videoConfigId}',null);
+  //   Response response = await get(uri);
+  //   // data sample trả về trong response
+  //   int statusCode = response.statusCode;
+  //   Map<String, String> headers = response.headers;
+  //   String? contentType = headers['content-type'];
+  //   var jsonResponse = json.decode(response.body);
+  //
+  //   return jsonResponse;
+  // }
+
+  startVideoTask(String configId, String sourceUrl) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "application/json"};
+    var body = {
+      "config_id": configId,
+      "source_url" : sourceUrl
+    };
+    var uri = Uri.http(this.urlPath,'/api/v1/video-tasks/start',null);
+    Response response = await post(uri, headers: headers, body: jsonEncode(body));
+    int statusCode = response.statusCode;
+    print(statusCode);
+    // API này trả về id của item mới được add trong body
+    String responseBody = response.body;
+    return json.decode(responseBody);
+  }
+
+  stopVideoTask(String taskId) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "application/json"};
+    var body = {
+      "task_id": taskId
+    };
+    var uri = Uri.http(this.urlPath,'/api/v1/video-tasks/stop',null);
+    Response response = await post(uri, headers: headers, body: jsonEncode(body));
+    int statusCode = response.statusCode;
+    // API này trả về id của item mới được add trong body
+    String responseBody = response.body;
+    return json.decode(responseBody);
+  }
+
+
+  getStatusVideoTask(String taskId) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "application/json"};
+    var body = {
+      "task_id": taskId
+    };
+    var uri = Uri.http(this.urlPath,'/api/v1/video-tasks/status',null);
+    Response response = await post(uri, headers: headers, body: jsonEncode(body));
+    int statusCode = response.statusCode;
+    // API này trả về id của item mới được add trong body
+    String responseBody = response.body;
+    return json.decode(responseBody);
+  }
+
+  analyzeImage(int featureId, File image) async {
+    // cài đặt tham số POST request
+    Map<String, String> headers = {"Content-type": "multipart/form-data"};
+    // var request = new http.MultipartRequest("POST", postUri);
+    var uri = Uri.http(this.urlPath,'/api/v1/images/analyze',null);
+
+    var request = new MultipartRequest("POST", uri);
+    request.fields['feature_id'] = 'someone@somewhere.com';
+    // request.files.add(image);
+    // request.send().then((response) {
+    //   if (response.statusCode == 200) print("Uploaded!");
+    // });
+    //
+    //
+    // int statusCode = response.statusCode;
+    // // API này trả về id của item mới được add trong body
+    // String responseBody = response.body;
+    // return json.decode(responseBody);
   }
 
   _makePostRequest(String url) async {
